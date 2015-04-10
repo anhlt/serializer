@@ -1,5 +1,15 @@
 <?php
 
+class SkipField extends Exception
+{
+
+}
+
+class ValidationError extends Exception
+{
+
+}
+
 class Field
 {
 
@@ -12,14 +22,20 @@ class Field
     public $field_name;
     public $parent;
     public $root;
-    public $MESSAGES = [
-        'required' => 'This field is required.'];
+    public $message = [
+        'required' => 'This field is required.'
+    ];
 
-    public function __construct($read_only = false, $write_only = false,
-                                $require = null, $default = null,
-                                $initial = null, $source = null,
-                                $label = null, $style = null)
-    {
+    public function __construct(
+        $read_only = false,
+        $write_only = false,
+        $require = null,
+        $default = null,
+        $initial = null,
+        $source = null,
+        $label = null,
+        $style = null
+    ) {
         self::$creation_counter = Field::$creation_counter;
         Field::$creation_counter += 1;
 
@@ -37,8 +53,9 @@ class Field
         $this->label = $label;
         if (is_null($style)) {
             $this->style = array();
-        } else
+        } else {
             $this->style = $style;
+        }
     }
 
     public function bind($field_name, $parent, $root)
@@ -68,19 +85,61 @@ class Field
         return $this->initial;
     }
 
-    public function get_value($obj){
+    public function get_value($obj)
+    {
         # Given the *incoming* primative data, return the value for this field
         # that should be validated and transformed to a native value.
-        return $obj[$this->field_name];
+        return $obj[ $this->field_name ];
     }
 
-    public function get_attribute(){
+    public function get_attribute()
+    {
         # Given the *outgoing* object instance, return the value for this field
         # that should be returned as a primative value.
         # TODO: find out later
     }
 
-    
+    public function get_default()
+    {
+        #     Return the default value to use when validating data if no input
+        #     is provided for this field.
+        #     If a default has not been set for this field then this will simply
+        #     return `empty`, indicating that no value should be set in the
+        #     validated data for this field.
+        if(is_null($this->default)){
+            throw new SkipField();
+        }
+        return $this->default;
+    }
+
+    public function validate($data = null){
+        #        Validate a simple representation and return the internal value.
+        #        The provided data may be `empty` if no representation was included.
+        #        May return `empty` if the field should not be included in the
+        #        validated data.
+
+        if(is_null($data)){
+            if($this->require){
+                $this->fail('required');
+            }
+            return $this->get_default();
+        }
+        return $this->to_native($data);
+    }
+
+    public function to_native($data){
+        return $data;
+    }
+
+    public function to_primative($value){
+        return $value;
+    }
+
+    public function fail($key){
+        if(array_key_exists($key, $this->message)){
+            throw new ValidationError($this->message[$key]);
+        }
+    }
 
 }
 
