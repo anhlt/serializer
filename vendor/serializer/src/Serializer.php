@@ -92,3 +92,43 @@ abstract class BaseSerializer extends Field
         return null;
     }
 }
+
+class Serializer extends BaseSerializer{
+    protected $fields= array();
+    public function __construct($instance = null, $data = null, $arg = array())
+    {
+        parent::__construct($instance, $data, $arg);
+        # Generate field_list
+        $this->define_fields();
+        foreach ($this->fields as $field_name => $field) {
+            $field->bind($field_name, $this, $this);
+        }
+
+    }
+
+    # overwrite in child class
+    public function define_fields(){
+        # must be overwrite like this way
+        # $this->fields_list['name'] = new CharField(array('allow_blank' => false));
+        throw new \Exception('NotImplementedError');
+    }
+
+    public function get_initial(){
+        $data = [];
+        foreach ($this->fields as $field_name => $field) {
+            $data[$field_name] = $field->get_initial();
+        }
+    }
+
+    public function get_value($obj)
+    {
+        return $obj[$this->field_name];
+    }
+
+    public function to_native($data)
+    {
+
+    }
+
+
+}
