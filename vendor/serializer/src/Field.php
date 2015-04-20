@@ -1,11 +1,12 @@
 <?php
+namespace serializer;
 
-class SkipField extends Exception
+class SkipField extends \Exception
 {
 
 }
 
-class ValidationError extends Exception
+class ValidationError extends \Exception
 {
 
 }
@@ -26,35 +27,38 @@ class Field
         'required' => 'This field is required.'
     ];
 
-    public function __construct(
-        $read_only = false,
-        $write_only = false,
-        $require = null,
-        $default = null,
-        $initial = null,
-        $source = null,
-        $label = null,
-        $style = null
-    ) {
+    public function __construct($arg)
+    {
+        $defaults = array(
+            'read_only' => false,
+            'write_only' => false,
+            'require' => false,
+            'default' => null,
+            'initial' => null,
+            'source' => null,
+            'label' => null,
+            'style' => null
+        );
+        $defaults = array_merge($defaults, $arg);
         self::$creation_counter = Field::$creation_counter;
         Field::$creation_counter += 1;
 
-        assert(!($read_only && $write_only), self::_NOT_READ_ONLY_WRITE_ONLY);
-        assert(!($read_only && $require), self::_NOT_READ_ONLY_REQUIRED);
-        assert(!($read_only && !is_null($default)), self::_NOT_READ_ONLY_DEFAULT);
-        assert(!($require && !is_null($default)), self::_NOT_REQUIRED_DEFAULT);
+        assert(!($defaults[ 'read_only' ] && $defaults[ 'write_only' ]), self::_NOT_READ_ONLY_WRITE_ONLY);
+        assert(!($defaults[ 'read_only' ] && $defaults[ 'require' ]), self::_NOT_READ_ONLY_REQUIRED);
+        assert(!($defaults[ 'read_only' ] && !is_null($defaults[ 'default' ])), self::_NOT_READ_ONLY_DEFAULT);
+        assert(!($defaults[ 'require' ] && !is_null($defaults[ 'default' ])), self::_NOT_REQUIRED_DEFAULT);
 
-        $this->read_only = $read_only;
-        $this->write_only = $write_only;
-        $this->require = $require;
-        $this->default = $default;
-        $this->initial = $initial;
-        $this->source = $source;
-        $this->label = $label;
-        if (is_null($style)) {
+        $this->read_only = $defaults[ 'read_only' ];
+        $this->write_only = $defaults[ 'write_only' ];
+        $this->require = $defaults[ 'require' ];
+        $this->default = $defaults[ 'default' ];
+        $this->initial = $defaults[ 'initial' ];
+        $this->source = $defaults[ 'source' ];
+        $this->label = $defaults[ 'label' ];
+        if (is_null($defaults[ 'style' ])) {
             $this->style = array();
         } else {
-            $this->style = $style;
+            $this->style = $defaults[ 'style' ];
         }
     }
 
@@ -106,58 +110,90 @@ class Field
         #     If a default has not been set for this field then this will simply
         #     return `empty`, indicating that no value should be set in the
         #     validated data for this field.
-        if(is_null($this->default)){
+        if (is_null($this->default)) {
             throw new SkipField();
         }
+
         return $this->default;
     }
 
-    public function validate($data = null){
+    public function validate($data = null)
+    {
         #        Validate a simple representation and return the internal value.
         #        The provided data may be `empty` if no representation was included.
         #        May return `empty` if the field should not be included in the
         #        validated data.
 
-        if(is_null($data)){
-            if($this->require){
+        if (is_null($data)) {
+            if ($this->require) {
                 $this->fail('required');
             }
+
             return $this->get_default();
         }
+
         return $this->to_native($data);
     }
 
-    public function to_native($data){
+    public function to_native($data)
+    {
         return $data;
     }
 
-    public function to_primative($value){
+    public function to_primative($value)
+    {
         return $value;
     }
 
-    public function fail($key){
-        if(array_key_exists($key, $this->message)){
-            throw new ValidationError($this->message[$key]);
+    public function fail($key)
+    {
+        if (array_key_exists($key, $this->message)) {
+            throw new ValidationError($this->message[ $key ]);
         }
     }
 
 }
 
-class BooleanField extends Field{
+class BooleanField extends Field
+{
     public $message = [
         'required' => 'This field is required.',
-        'invalid_value'=> ' input is not a valid boolean.'
+        'invalid_value' => ' input is not a valid boolean.'
     ];
 
     public $TRUE_VALUES = ['t', 'T', 'true', 'True', 'TRUE', '1', 1, true];
-    public $FALSE_VALUES = ['f', 'F', 'false', 'False', 'FALSE', '0', 0, 0.0, False];
+    public $FALSE_VALUES = ['f', 'F', 'false', 'False', 'FALSE', '0', 0, 0.0, false];
 
     public function get_value($obj)
     {
-        return $obj[$this->field_name];
+        return $obj[ $this->field_name ];
     }
 
+    public function to_native($data)
+    {
+        if (in_array($data, $this->TRUE_VALUES)) {
+            return true;
+        } elseif (in_array($data, $this->FALSE_VALUES)) {
+            return false;
+        } else {
+            $this->fail('invalid_value');
+        }
+    }
+}
 
+class CharField extends Field
+{
+    public $message = [
+        'required' => 'This field is required.',
+        'blank' => 'This field may not be black'
+    ];
+    protected $allow_blank = false;
+
+    public function __construct($arg = array('allow_blank' => false))
+    {
+        $this->allow_blank = $arg[ 'allow_blank' ];
+        parent::__construct($arg);
+    }
 }
 
 ?>
