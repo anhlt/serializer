@@ -196,4 +196,21 @@ class CharField extends Field
     }
 }
 
+
+class IntegerField extends Field
+{
+    public $message = [
+        'required' => 'This field is required.',
+        'invalid_integer' => 'A valid integer is required.'
+    ];
+
+    public function to_native($data)
+    {
+        if(is_int($data)){
+            return $data;
+        }
+        $this->fail('invalid_integer');
+    }
+}
+
 ?>

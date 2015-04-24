@@ -144,10 +144,10 @@ class Serializer extends BaseSerializer
         foreach ($this->fields as $field) {
             if($field->read_only)
                 continue;
-            $primitive_value = $field . get_value($data);
+            $primitive_value = $field->get_value($data);
 
             try {
-                $validated_value = $field . validate($primitive_value);
+                $validated_value = $field->validate($primitive_value);
             } catch (\Exception $e) {
                 $error[ $field->field_name ] = $e->getMessage();
             } catch (SkipField $e) {
