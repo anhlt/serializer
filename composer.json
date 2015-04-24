@@ -14,8 +14,8 @@
   },
   "autoload": {
     "psr-4": {
-      "serializer\\": "src/serializer",
-      "serializer\\test": "test/"
+      "serializer\\": "src/serializer/",
+      "serializer\\test\\": "test/"
     }
   }
 }

@@ -6,6 +6,8 @@
  * Time: 18:03
  */
 
+use serializer\Serializer;
+use serializer\CharField;
 
 
 class TestSerializer extends  Serializer{
