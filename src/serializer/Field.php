@@ -1,6 +1,8 @@
 <?php
 namespace serializer;
 
+
+
 class SkipField extends \Exception
 {
 
@@ -79,6 +81,11 @@ class Field
             $this->source = $field_name;
         }
         # TODO: Findout about source
+        if($this->source == '*'){
+            $this->source_attrs = array();
+        }else{
+            $this->source_attrs = explode('.', $this->source);
+        }
     }
 
     public function get_initial()

@@ -74,8 +74,8 @@ abstract class BaseSerializer extends Field
             return $this->_data;
         }
 
-        if ($name = 'errors') {
-            if (!is_null($this->_error)) {
+        if ($name == 'errors') {
+            if (is_null($this->_error)) {
                 $msg = 'You must call `is_valid()` before accessing `.errors`.';
                 throw new \Exception($msg);
             }
@@ -83,9 +83,9 @@ abstract class BaseSerializer extends Field
             return $this->_error;
         }
 
-        if ($name = 'validated_data') {
-            if (!is_null($this->_validated_data)) {
-                $msg = 'You must call `.is_valid()` before accessing `.errors`.';
+        if ($name == 'validated_data') {
+            if (is_null($this->_validated_data)) {
+                $msg = 'You must call `.is_valid()` before accessing `.validated_data`.';
                 throw new \Exception($msg);
             }
 
@@ -98,6 +98,7 @@ abstract class BaseSerializer extends Field
 
 class Serializer extends BaseSerializer
 {
+    use utils;
     protected $fields = array();
 
     public function __construct($instance = null, $data = null, $arg = array())
@@ -153,7 +154,7 @@ class Serializer extends BaseSerializer
             } catch (SkipField $e) {
 
             }
-            $ret[ $field->source_attrs ] = $validated_value;
+            $this->set_value($ret, $field->source_attrs, $validated_value);
         }
 
         if ($error) {

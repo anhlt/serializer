@@ -19,6 +19,16 @@ class TestSerializer extends  Serializer{
     }
 }
 
+class test{
+    public function append_array($current_array, $value_array, $value){
+        $current_key = array_shift($value_array);
+        if(count($value_array) == 0)
+            $current_array = array($current_key => $value);
+        else
+            $current_array[$current_key] = $this->append_array(array(),$value_array, $value);
+        return $current_array;
+    }
+}
 
 class SerializersTest extends PHPUnit_Framework_TestCase {
 
