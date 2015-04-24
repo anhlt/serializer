@@ -1,0 +1,21 @@
+{
+  "name": "anhlt/serializer",
+  "description": "php serializer",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "author's name",
+      "email": "email@example.com"
+    }
+  ],
+  "require": {
+    "phpunit/phpunit": "4.8.x-dev"
+  },
+  "autoload": {
+    "psr-4": {
+      "serializer\\": "src/",
+      "serializer\\test": "test/"
+    }
+  }
+}
