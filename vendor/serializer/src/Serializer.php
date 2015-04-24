@@ -10,9 +10,9 @@ namespace serializer;
 
 abstract class BaseSerializer extends Field
 {
-    private $instance;
+    protected $instance;
     private $init_data;
-    private $_validated_data;
+    protected $_validated_data;
     private $_error = null;
     private $_data = null;
 
@@ -79,6 +79,7 @@ abstract class BaseSerializer extends Field
                 $msg = 'You must call `is_valid()` before accessing `.errors`.';
                 throw new \Exception($msg);
             }
+
             return $this->_error;
         }
 
@@ -87,14 +88,18 @@ abstract class BaseSerializer extends Field
                 $msg = 'You must call `.is_valid()` before accessing `.errors`.';
                 throw new \Exception($msg);
             }
+
             return $this->_validated_data;
         }
+
         return null;
     }
 }
 
-class Serializer extends BaseSerializer{
-    protected $fields= array();
+class Serializer extends BaseSerializer
+{
+    protected $fields = array();
+
     public function __construct($instance = null, $data = null, $arg = array())
     {
         parent::__construct($instance, $data, $arg);
@@ -107,28 +112,89 @@ class Serializer extends BaseSerializer{
     }
 
     # overwrite in child class
-    public function define_fields(){
+    public function define_fields()
+    {
         # must be overwrite like this way
-        # $this->fields_list['name'] = new CharField(array('allow_blank' => false));
+        # $this->fields['name'] = new CharField(array('allow_blank' => false));
         throw new \Exception('NotImplementedError');
     }
 
-    public function get_initial(){
+    public function get_initial()
+    {
         $data = [];
         foreach ($this->fields as $field_name => $field) {
-            $data[$field_name] = $field->get_initial();
+            $data[ $field_name ] = $field->get_initial();
         }
     }
 
     public function get_value($obj)
     {
-        return $obj[$this->field_name];
+        return $obj[ $this->field_name ];
     }
 
+    /**
+     * @param $data
+     * @return array
+     * @throws ValidationError
+     */
     public function to_native($data)
     {
+        $ret = array();
+        $error = array();
+        foreach ($this->fields as $field) {
+            if($field->read_only)
+                continue;
+            $primitive_value = $field . get_value($data);
 
+            try {
+                $validated_value = $field . validate($primitive_value);
+            } catch (\Exception $e) {
+                $error[ $field->field_name ] = $e->getMessage();
+            } catch (SkipField $e) {
+
+            }
+            $ret[ $field->source_attrs ] = $validated_value;
+        }
+
+        if ($error) {
+            throw new ValidationError($error);
+        }
+
+        return $ret;
     }
 
+    /**
+     * @param $instance
+     * @return array
+     */
+    public function to_primative($instance)
+    {
+        $ret = array();
+        foreach($this->fields as $field){
+            if($field->read_only)
+                continue;
+            $native_value = $field->get_attribute($instance);
+            $ret[$field->field_name] = $field->to_primative($native_value);
+        }
 
+        return $ret;
+    }
+
+    public function update($instance, $validated_data){
+        # TODO: Update and return $instance
+
+        return $instance;
+    }
+
+    public function create($validated_data){
+        return array();
+    }
+
+    public function save()
+    {
+        if(!is_null($this->instance)){
+
+        }
+        $this->instance = $this->create($this->validated_data);
+    }
 }

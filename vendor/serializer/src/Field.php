@@ -96,7 +96,7 @@ class Field
         return $obj[ $this->field_name ];
     }
 
-    public function get_attribute()
+    public function get_attribute($instance)
     {
         # Given the *outgoing* object instance, return the value for this field
         # that should be returned as a primative value.
