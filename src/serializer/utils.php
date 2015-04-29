@@ -6,6 +6,28 @@
  * Time: 2:38 AM
  */
 namespace serializer;
+
+/**
+ * Class BasicObject
+ * @package serializer
+ * Basic object represent an instance
+ */
+class BasicObject{
+    protected $_value = array();
+    function __construct($_init_data = array()){
+        $this->_value = $_init_data;
+    }
+
+    function __get($name){
+        if(array_key_exists($name, $this->_value))
+            return $this->_value[$name];
+    }
+    function __set($name, $value)
+    {
+        $this->_value[$name] = $value;
+    }
+}
+
 trait utils{
 
     /**
@@ -18,7 +40,7 @@ trait utils{
      * set_value(['a' => 1], ['x'], 2)      -> ['a'=> 1, 'x'=> 2}
      * set_value(['a' => 1], ['x', 'y'], 2) -> ['a'1, 'x'=> ['y'=> 2]]
      * if source is person.name.first_name = 'hello'
-     * source_attrs = ['person','name','first_name']
+     * source_attrs = instance, attrs
      * => 'person' => ['name' => ['first_name' => 'hello']]
      *
      */
@@ -37,5 +59,20 @@ trait utils{
         else
             $current_array[$current_key] = $this->append_array(array(),$value_array, $value);
         return $current_array;
+    }
+
+
+    /**
+     * @param $instance
+     * @param Array $attrs
+     * $attr = [instance, attrs]
+     *
+     */
+    public function get_attr($instance, $attrs){
+
+        foreach($attrs as $attr){
+            $instance = $instance[$attr];
+        }
+        return $instance;
     }
 }

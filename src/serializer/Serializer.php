@@ -11,10 +11,12 @@ namespace serializer;
 abstract class BaseSerializer extends Field
 {
     protected $instance;
-    private $init_data;
+    protected $init_data;
     protected $_validated_data;
-    private $_error = null;
-    private $_data = null;
+    protected $_error = null;
+    protected $_data = null;
+    protected $fields = array();
+
 
     public function __construct($instance = null, $data = null, $arg = array())
     {
@@ -38,6 +40,9 @@ abstract class BaseSerializer extends Field
         throw new \Exception('NotImplementedError');
     }
 
+    /**
+     * @return bool
+     */
     public function is_valid()
     {
         try {
@@ -54,6 +59,11 @@ abstract class BaseSerializer extends Field
         return true;
     }
 
+    /**
+     * @param $name
+     * @return array|null|void
+     * @throws \Exception
+     */
     function __get($name)
     {
         if ($name == 'data') {
@@ -92,20 +102,32 @@ abstract class BaseSerializer extends Field
             return $this->_validated_data;
         }
 
-        return null;
+
+        throw new \Exception('Access to undefined properties');
     }
+
 }
 
+/**
+ * @property array validated_data
+ */
 class Serializer extends BaseSerializer
 {
     use utils;
-    protected $fields = array();
 
+
+    /**
+     * @param null $instance
+     * @param null $data
+     * @param array $arg
+     * @throws \Exception
+     */
     public function __construct($instance = null, $data = null, $arg = array())
     {
         parent::__construct($instance, $data, $arg);
         # Generate field_list
         $this->define_fields();
+        /** @var \serializer\Field $field */
         foreach ($this->fields as $field_name => $field) {
             $field->bind($field_name, $this, $this);
         }
@@ -120,9 +142,13 @@ class Serializer extends BaseSerializer
         throw new \Exception('NotImplementedError');
     }
 
+    /**
+     *
+     */
     public function get_initial()
     {
         $data = [];
+        /** @var \serializer\Field $field */
         foreach ($this->fields as $field_name => $field) {
             $data[ $field_name ] = $field->get_initial();
         }
@@ -141,7 +167,8 @@ class Serializer extends BaseSerializer
     public function to_native($data)
     {
         $ret = array();
-        $error = array();
+        $errors = array();
+        /** @var \serializer\Field $field */
         foreach ($this->fields as $field) {
             if($field->read_only)
                 continue;
@@ -149,16 +176,20 @@ class Serializer extends BaseSerializer
 
             try {
                 $validated_value = $field->validate($primitive_value);
-            } catch (\Exception $e) {
-                $error[ $field->field_name ] = $e->getMessage();
             } catch (SkipField $e) {
 
+            } catch (\Exception $e) {
+                $errors[ $field->field_name ] = $e->getMessage();
             }
             $this->set_value($ret, $field->source_attrs, $validated_value);
         }
 
-        if ($error) {
-            throw new ValidationError($error);
+        if ($errors) {
+            $message = '';
+            foreach($errors as $error_key => $message_string){
+                $message .= $message_string . '\n';
+            }
+            throw new ValidationError($message);
         }
 
         return $ret;
@@ -171,6 +202,7 @@ class Serializer extends BaseSerializer
     public function to_primative($instance)
     {
         $ret = array();
+        /** @var \serializer\Field $field */
         foreach($this->fields as $field){
             if($field->read_only)
                 continue;
@@ -181,21 +213,37 @@ class Serializer extends BaseSerializer
         return $ret;
     }
 
+    /**
+     * @param \serializer\BasicObject $instance
+     * @param array $validated_data
+     * @return mixed
+     */
     public function update($instance, $validated_data){
-        # TODO: Update and return $instance
-
+        foreach($validated_data as $key=> $value){
+            $instance->$key = $value;
+        }
         return $instance;
     }
 
+    /**
+     * @param $validated_data
+     * @return BasicObject
+     */
     public function create($validated_data){
-        return array();
+        $obj  = new BasicObject();
+        /** @var Array $validated_data */
+        foreach($validated_data as $key=> $value) {
+            $obj->$key = $value;
+        }
+        return $obj;
     }
 
     public function save()
     {
         if(!is_null($this->instance)){
-
+            $this->update($this->instance, $this->validated_data);
         }
         $this->instance = $this->create($this->validated_data);
+        return $this->instance;
     }
 }

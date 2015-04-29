@@ -13,9 +13,12 @@ class ValidationError extends \Exception
 
 }
 
+/**
+ * @property array source_attrs
+ */
 class Field
 {
-
+    use utils;
     const _NOT_READ_ONLY_WRITE_ONLY = 'May not set both `read_only` and `write_only`';
     const _NOT_READ_ONLY_REQUIRED = 'May not set both `read_only` and `required`';
     const _NOT_READ_ONLY_DEFAULT = 'May not set both `read_only` and `default`';
@@ -64,6 +67,11 @@ class Field
         }
     }
 
+    /**
+     * @param $field_name
+     * @param $parent
+     * @param $root
+     */
     public function bind($field_name, $parent, $root)
     {
         # Setup the context for field name instance
@@ -100,7 +108,10 @@ class Field
     {
         # Given the *incoming* primative data, return the value for this field
         # that should be validated and transformed to a native value.
-        return $obj[ $this->field_name ];
+        if(array_key_exists( $this->field_name,$obj))
+            return $obj[ $this->field_name ];
+        else
+            return null;
     }
 
     public function get_attribute($instance)
@@ -108,6 +119,8 @@ class Field
         # Given the *outgoing* object instance, return the value for this field
         # that should be returned as a primative value.
         # TODO: find out later
+
+        return 1;
     }
 
     public function get_default()

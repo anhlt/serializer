@@ -19,16 +19,6 @@ class TestSerializer extends  Serializer{
     }
 }
 
-class test{
-    public function append_array($current_array, $value_array, $value){
-        $current_key = array_shift($value_array);
-        if(count($value_array) == 0)
-            $current_array = array($current_key => $value);
-        else
-            $current_array[$current_key] = $this->append_array(array(),$value_array, $value);
-        return $current_array;
-    }
-}
 
 class SerializersTest extends PHPUnit_Framework_TestCase {
 
@@ -45,5 +35,29 @@ class SerializersTest extends PHPUnit_Framework_TestCase {
         $serializer = new TestSerializer(null,$data);
         $this->assertTrue($serializer->is_valid());
         $this->assertEquals($serializer->validated_data , $data);
+    }
+
+    public function test_create(){
+        $data = ['name'=> 'anhlt', 'age'=> 2];
+        $serializer = new TestSerializer(null,$data);
+        $this->assertTrue($serializer->is_valid());
+        $obj =  $serializer->save();
+        $this->assertEquals($obj->name , 'anhlt');
+    }
+
+    public function test_update(){
+        $data = ['name'=> 'anhlt', 'age'=> 2];
+        $obj = new \serializer\BasicObject(array('name'=> 'anhlt', 'age'=> 21));
+        $serializer = new TestSerializer($obj, $data);
+        $this->assertTrue($serializer->is_valid());
+        $serializer->save();
+        $this->assertEquals($obj->age, 2);
+    }
+
+    public function test_missing_value(){
+        $data = ['name'=> 'anhlt'];
+        $serializer = new TestSerializer(null, $data);
+        $this->assertFalse($serializer->is_valid());
+        $this->assertEquals($serializer->errors, 'This field is required.\n');
     }
 }
