@@ -74,7 +74,7 @@ abstract class BaseSerializer extends Field
                     # generate data from
                     $this->_data = [];
                     foreach ($this->fields as $field_name => $field) {
-                        $this->_data[ $field_name ] = $field;
+                        $this->_data[$field_name] = $field;
                     }
                 } else {
                     $this->_data = $this->get_initial();
@@ -150,13 +150,13 @@ class Serializer extends BaseSerializer
         $data = [];
         /** @var \serializer\Field $field */
         foreach ($this->fields as $field_name => $field) {
-            $data[ $field_name ] = $field->get_initial();
+            $data[$field_name] = $field->get_initial();
         }
     }
 
     public function get_value($obj)
     {
-        return $obj[ $this->field_name ];
+        return $obj[$this->field_name];
     }
 
     /**
@@ -170,7 +170,7 @@ class Serializer extends BaseSerializer
         $errors = array();
         /** @var \serializer\Field $field */
         foreach ($this->fields as $field) {
-            if($field->read_only)
+            if ($field->read_only)
                 continue;
             $primitive_value = $field->get_value($data);
 
@@ -179,14 +179,14 @@ class Serializer extends BaseSerializer
             } catch (SkipField $e) {
 
             } catch (\Exception $e) {
-                $errors[ $field->field_name ] = $e->getMessage();
+                $errors[$field->field_name] = $e->getMessage();
             }
             $this->set_value($ret, $field->source_attrs, $validated_value);
         }
 
         if ($errors) {
             $message = '';
-            foreach($errors as $error_key => $message_string){
+            foreach ($errors as $error_key => $message_string) {
                 $message .= $message_string . '\n';
             }
             throw new ValidationError($message);
@@ -203,8 +203,8 @@ class Serializer extends BaseSerializer
     {
         $ret = array();
         /** @var \serializer\Field $field */
-        foreach($this->fields as $field){
-            if($field->read_only)
+        foreach ($this->fields as $field) {
+            if ($field->read_only)
                 continue;
             $native_value = $field->get_attribute($instance);
             $ret[$field->field_name] = $field->to_primative($native_value);
@@ -218,8 +218,9 @@ class Serializer extends BaseSerializer
      * @param array $validated_data
      * @return mixed
      */
-    public function update($instance, $validated_data){
-        foreach($validated_data as $key=> $value){
+    public function update($instance, $validated_data)
+    {
+        foreach ($validated_data as $key => $value) {
             $instance->$key = $value;
         }
         return $instance;
@@ -229,10 +230,11 @@ class Serializer extends BaseSerializer
      * @param $validated_data
      * @return BasicObject
      */
-    public function create($validated_data){
-        $obj  = new BasicObject();
+    public function create($validated_data)
+    {
+        $obj = new BasicObject();
         /** @var Array $validated_data */
-        foreach($validated_data as $key=> $value) {
+        foreach ($validated_data as $key => $value) {
             $obj->$key = $value;
         }
         return $obj;
@@ -240,10 +242,83 @@ class Serializer extends BaseSerializer
 
     public function save()
     {
+        if (!is_null($this->instance)) {
+            $this->update($this->instance, $this->validated_data);
+        }
+        $this->instance = $this->create($this->validated_data);
+        return $this->instance;
+    }
+}
+
+/**
+ * Class ListSerializer
+ * @package serializer
+ */
+class ListSerializer extends Serializer
+{
+    /**
+     * @var \serializer\Field null
+     */
+    protected $child = null;
+    /**
+     * @var array
+     */
+    protected $initial = array();
+
+    /**
+     * @param null $instance
+     * @param null $data
+     * @param array $arg
+     */
+    public function __construct($instance = null, $data = null, $arg = array())
+    {
+        $this->child = $arg['child'] or $this->child;
+        assert(!is_null($this->child),'`child` is a requirement argument');
+        parent::__construct($instance, $data, $arg);
+        $this->child->bind('', $this, $this);
+    }
+
+    public function bind($field_name, $parent, $root)
+    {
+        parent::bind($field_name, $parent, $root);
+        $this->child->bind($field_name,$this, $root);
+    }
+
+    /**
+     * @param $dict
+     * @return mixed
+     */
+    public function get_value($dict){
+        return $dict[$this->field_name];
+    }
+
+    /**
+     *
+     */
+    public function to_primative($data){
+        $primative_data = array();
+        foreach($data as $child){
+            $primative_data[] = $this->child->to_primative($child);
+        }
+        return $primative_data;
+    }
+
+    public function create($attrs_list){
+        $list_objects = array();
+        foreach($attrs_list as $attrs){
+            $list_objects[] = new BasicObject($attrs);
+        }
+        return $list_objects;
+    }
+
+    public function save(){
         if(!is_null($this->instance)){
             $this->update($this->instance, $this->validated_data);
         }
         $this->instance = $this->create($this->validated_data);
         return $this->instance;
     }
+
+
+
 }

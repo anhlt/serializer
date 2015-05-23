@@ -28,6 +28,10 @@ class BasicObject{
     }
 }
 
+class EmptyObject{
+
+}
+
 trait utils{
 
     /**
@@ -74,5 +78,40 @@ trait utils{
             $instance = $instance[$attr];
         }
         return $instance;
+    }
+
+    /**
+     *Used to support list values in HTML forms.
+     *Supports lists of primitives and/or dictionaries.
+     * List of primitives.
+     *   {
+     *       '[0]': 'abc',
+     *       '[1]': 'def',
+     *       '[2]': 'hij'
+     *   }
+     *    -->
+     *   [
+     *       'abc',
+     *       'def',
+     *       'hij'
+     *   ]
+     * List of dictionaries.
+     * {
+     *   '[0]foo': 'abc',
+     *   '[0]bar': 'def',
+     *   '[1]foo': 'hij',
+     *   '[2]bar': 'klm',
+     * }
+     *   -->
+     *[
+     *   {'foo': 'abc', 'bar': 'def'},
+     *   {'foo': 'hij', 'bar': 'klm'}
+     *]
+     * @param $dictionary
+     * @param $prefix
+     */
+    public function parse_html_list($dictionary, $prefix){
+        
+
     }
 }

@@ -2,7 +2,6 @@
 namespace serializer;
 
 
-
 class SkipField extends \Exception
 {
 
@@ -48,22 +47,22 @@ class Field
         self::$creation_counter = Field::$creation_counter;
         Field::$creation_counter += 1;
 
-        assert(!($defaults[ 'read_only' ] && $defaults[ 'write_only' ]), self::_NOT_READ_ONLY_WRITE_ONLY);
-        assert(!($defaults[ 'read_only' ] && $defaults[ 'require' ]), self::_NOT_READ_ONLY_REQUIRED);
-        assert(!($defaults[ 'read_only' ] && !is_null($defaults[ 'default' ])), self::_NOT_READ_ONLY_DEFAULT);
-        assert(!($defaults[ 'require' ] && !is_null($defaults[ 'default' ])), self::_NOT_REQUIRED_DEFAULT);
+        assert(!($defaults['read_only'] && $defaults['write_only']), self::_NOT_READ_ONLY_WRITE_ONLY);
+        assert(!($defaults['read_only'] && $defaults['require']), self::_NOT_READ_ONLY_REQUIRED);
+        assert(!($defaults['read_only'] && !is_null($defaults['default'])), self::_NOT_READ_ONLY_DEFAULT);
+        assert(!($defaults['require'] && !is_null($defaults['default'])), self::_NOT_REQUIRED_DEFAULT);
 
-        $this->read_only = $defaults[ 'read_only' ];
-        $this->write_only = $defaults[ 'write_only' ];
-        $this->require = $defaults[ 'require' ];
-        $this->default = $defaults[ 'default' ];
-        $this->initial = $defaults[ 'initial' ];
-        $this->source = $defaults[ 'source' ];
-        $this->label = $defaults[ 'label' ];
-        if (is_null($defaults[ 'style' ])) {
+        $this->read_only = $defaults['read_only'];
+        $this->write_only = $defaults['write_only'];
+        $this->require = $defaults['require'];
+        $this->default = $defaults['default'];
+        $this->initial = $defaults['initial'];
+        $this->source = $defaults['source'];
+        $this->label = $defaults['label'];
+        if (is_null($defaults['style'])) {
             $this->style = array();
         } else {
-            $this->style = $defaults[ 'style' ];
+            $this->style = $defaults['style'];
         }
     }
 
@@ -89,9 +88,9 @@ class Field
             $this->source = $field_name;
         }
         # TODO: Findout about source
-        if($this->source == '*'){
+        if ($this->source == '*') {
             $this->source_attrs = array();
-        }else{
+        } else {
             $this->source_attrs = explode('.', $this->source);
         }
     }
@@ -108,8 +107,8 @@ class Field
     {
         # Given the *incoming* primative data, return the value for this field
         # that should be validated and transformed to a native value.
-        if(array_key_exists( $this->field_name,$obj))
-            return $obj[ $this->field_name ];
+        if (array_key_exists($this->field_name, $obj))
+            return $obj[$this->field_name];
         else
             return null;
     }
@@ -118,9 +117,7 @@ class Field
     {
         # Given the *outgoing* object instance, return the value for this field
         # that should be returned as a primative value.
-        # TODO: find out later
-
-        return 1;
+        return $this->get_attr($instance, $this->source_attrs);
     }
 
     public function get_default()
@@ -168,7 +165,7 @@ class Field
     public function fail($key)
     {
         if (array_key_exists($key, $this->message)) {
-            throw new ValidationError($this->message[ $key ]);
+            throw new ValidationError($this->message[$key]);
         }
     }
 
@@ -186,7 +183,7 @@ class BooleanField extends Field
 
     public function get_value($obj)
     {
-        return $obj[ $this->field_name ];
+        return $obj[$this->field_name];
     }
 
     public function to_native($data)
@@ -211,7 +208,7 @@ class CharField extends Field
 
     public function __construct($arg = array('allow_blank' => false))
     {
-        $this->allow_blank = $arg[ 'allow_blank' ];
+        $this->allow_blank = $arg['allow_blank'];
         parent::__construct($arg);
     }
 }
@@ -226,11 +223,30 @@ class IntegerField extends Field
 
     public function to_native($data)
     {
-        if(is_int($data)){
+        if (is_int($data)) {
             return $data;
         }
         $this->fail('invalid_integer');
     }
+}
+
+class ChoiceField extends Field
+{
+    public $message = [
+        'required' => 'This field is required.',
+        'invalid_choice' => 'This is not a valid choice'
+    ];
+
+    public function __construct($arg)
+    {
+        if(array_key_exists('choices', $arg)){
+            $choices = $arg['choices'];
+            unset($arg['choices']);
+        }
+        assert($choices, '`choices` arguments is required and may not be empty');
+        
+    }
+
 }
 
 ?>
