@@ -31,7 +31,7 @@ class Field
         'required' => 'This field is required.'
     ];
 
-    public function __construct($arg)
+    public function __construct($arg = array())
     {
         $defaults = array(
             'read_only' => false,
@@ -223,8 +223,8 @@ class IntegerField extends Field
 
     public function to_native($data)
     {
-        if (is_int($data)) {
-            return $data;
+        if (is_numeric($data)) {
+            return (int)$data;
         }
         $this->fail('invalid_integer');
     }
