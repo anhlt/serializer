@@ -120,20 +120,6 @@ class Field
         return $this->get_attr($instance, $this->source_attrs);
     }
 
-    public function get_default()
-    {
-        #     Return the default value to use when validating data if no input
-        #     is provided for this field.
-        #     If a default has not been set for this field then this will simply
-        #     return `empty`, indicating that no value should be set in the
-        #     validated data for this field.
-        if (is_null($this->default)) {
-            throw new SkipField();
-        }
-
-        return $this->default;
-    }
-
     public function validate($data = null)
     {
         #        Validate a simple representation and return the internal value.
@@ -152,6 +138,27 @@ class Field
         return $this->to_native($data);
     }
 
+    public function fail($key)
+    {
+        if (array_key_exists($key, $this->message)) {
+            throw new ValidationError($this->message[ $key ]);
+        }
+    }
+
+    public function get_default()
+    {
+        #     Return the default value to use when validating data if no input
+        #     is provided for this field.
+        #     If a default has not been set for this field then this will simply
+        #     return `empty`, indicating that no value should be set in the
+        #     validated data for this field.
+        if (is_null($this->default)) {
+            throw new SkipField();
+        }
+
+        return $this->default;
+    }
+
     public function to_native($data)
     {
         return $data;
@@ -160,13 +167,6 @@ class Field
     public function to_primative($value)
     {
         return $value;
-    }
-
-    public function fail($key)
-    {
-        if (array_key_exists($key, $this->message)) {
-            throw new ValidationError($this->message[$key]);
-        }
     }
 
 }
@@ -188,10 +188,10 @@ class BooleanField extends Field
 
     public function to_native($data)
     {
-        if (in_array($data, $this->TRUE_VALUES)) {
-            return true;
-        } elseif (in_array($data, $this->FALSE_VALUES)) {
+        if (in_array($data, $this->FALSE_VALUES, true)) {
             return false;
+        } elseif (in_array($data, $this->TRUE_VALUES, true)) {
+            return true;
         } else {
             $this->fail('invalid_value');
         }

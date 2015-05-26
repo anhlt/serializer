@@ -7,63 +7,6 @@
  */
 namespace serializer;
 
-/**
- * Class BasicObject
- * @package serializer
- * Basic object represent an instance
- */
-class BasicObject
-{
-    protected $_value = array();
-
-    function __construct($_init_data = array())
-    {
-        $this->_value = $_init_data;
-    }
-
-    function __get($name)
-    {
-        if (array_key_exists($name, $this->_value)) {
-            return $this->_value[ $name ];
-        }
-    }
-
-    function __set($name, $value)
-    {
-        $this->_value[ $name ] = $value;
-    }
-}
-
-class EmptyObject
-{
-
-}
-
-class HTMLDict
-{
-    protected $data = array();
-
-    function __construct($data)
-    {
-        $this->data = $data;
-    }
-
-    function __get($name)
-    {
-        if (array_key_exists($name, $this->data)) {
-            return $this->data[ $name ];
-        }
-
-        return null;
-    }
-
-    function as_array()
-    {
-        return $this->data;
-    }
-}
-
-
 trait utils
 {
 
@@ -148,6 +91,7 @@ trait utils
      *]
      * @param $dictionary
      * @param $prefix
+     * @return Array $ret
      */
 
     public function parse_html_list($dictionary, $prefix = '')
@@ -184,5 +128,61 @@ trait utils
         }
 
         return $ret;
+    }
+}
+
+/**
+ * Class BasicObject
+ * @package serializer
+ * Basic object represent an instance
+ */
+class BasicObject
+{
+    protected $_value = array();
+
+    function __construct($_init_data = array())
+    {
+        $this->_value = $_init_data;
+    }
+
+    function __get($name)
+    {
+        if (array_key_exists($name, $this->_value)) {
+            return $this->_value[ $name ];
+        }
+    }
+
+    function __set($name, $value)
+    {
+        $this->_value[ $name ] = $value;
+    }
+}
+
+class EmptyObject
+{
+
+}
+
+class HTMLDict
+{
+    protected $data = array();
+
+    function __construct($data)
+    {
+        $this->data = $data;
+    }
+
+    function __get($name)
+    {
+        if (array_key_exists($name, $this->data)) {
+            return $this->data[ $name ];
+        }
+
+        return null;
+    }
+
+    function as_array()
+    {
+        return $this->data;
     }
 }
