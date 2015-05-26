@@ -1,6 +1,7 @@
 <?php
 use serializer\ListSerializer;
 use serializer\IntegerField;
+use serializer\HTMLDict;
 
 class IntegerListSerializer extends ListSerializer
 {
@@ -22,7 +23,16 @@ class ListSerializersTest extends PHPUnit_Framework_TestCase
         $data = ["123", "456"];
         $output = [123, 456];
         $serializer = new IntegerListSerializer(null, $data);
-        assertTrue($serializer->is_valid());
-        assert($serializer->validated_data == $output);
+        $this->assertTrue($serializer->is_valid());
+        $this->assertEquals( $output, $serializer->validated_data );
+    }
+
+    function test_validate_html_input()
+    {
+        $data = new HTMLDict(array('[0]' => 1, '[1]' => 2));
+        $output = [1 , 2];
+        $serializer = new IntegerListSerializer(null, $data);
+        $this->assertTrue($serializer->is_valid());
+        $this->assertEquals( $output, $serializer->validated_data );
     }
 }

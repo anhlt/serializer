@@ -32,7 +32,7 @@ class ListSerializer extends Serializer
     public function __construct($instance = null, $data = null, $arg = array())
     {
         $this->define_fields();
-        $this->child = $arg[ 'child' ] or $this->child;
+        $this->child = $this->child or $arg[ 'child' ];
         assert(!is_null($this->child), '`child` is a requirement argument');
         parent::__construct($instance, $data, $arg);
         $this->child->bind('', $this, $this);
@@ -53,6 +53,22 @@ class ListSerializer extends Serializer
         return $dict[ $this->field_name ];
     }
 
+
+    public function to_native($data){
+
+        $native_data = array();
+
+        // Strategy
+        if( $data instanceof HTMLDict){
+            $data = $this->parse_html_list($data->as_array());
+        }
+
+        foreach($data as $child_data){
+            $native_data[] = $this->child->validate($child_data);
+        }
+
+        return $native_data;
+    }
     /**
      *
      */
@@ -62,7 +78,6 @@ class ListSerializer extends Serializer
         foreach ($data as $child) {
             $primative_data[ ] = $this->child->to_primative($child);
         }
-
         return $primative_data;
     }
 

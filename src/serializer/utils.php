@@ -12,27 +12,60 @@ namespace serializer;
  * @package serializer
  * Basic object represent an instance
  */
-class BasicObject{
+class BasicObject
+{
     protected $_value = array();
-    function __construct($_init_data = array()){
+
+    function __construct($_init_data = array())
+    {
         $this->_value = $_init_data;
     }
 
-    function __get($name){
-        if(array_key_exists($name, $this->_value))
-            return $this->_value[$name];
+    function __get($name)
+    {
+        if (array_key_exists($name, $this->_value)) {
+            return $this->_value[ $name ];
+        }
     }
+
     function __set($name, $value)
     {
-        $this->_value[$name] = $value;
+        $this->_value[ $name ] = $value;
     }
 }
 
-class EmptyObject{
+class EmptyObject
+{
 
 }
 
-trait utils{
+class HTMLDict
+{
+    protected $data = array();
+
+    function __construct($data)
+    {
+        $this->data = $data;
+    }
+
+    function __get($name)
+    {
+        if (array_key_exists($name, $this->data)) {
+            return $this->data[ $name ];
+        }
+
+        return null;
+    }
+
+    function as_array()
+    {
+        return $this->data;
+    }
+}
+
+
+trait utils
+{
 
     /**
      * @param array $dictionary
@@ -48,20 +81,24 @@ trait utils{
      * => 'person' => ['name' => ['first_name' => 'hello']]
      *
      */
-    public function set_value(&$dictionary, $keys, $value){
-        if(count($keys) == 0){
-            $dictionary = array_merge($dictionary , $value);
+    public function set_value(&$dictionary, $keys, $value)
+    {
+        if (count($keys) == 0) {
+            $dictionary = array_merge($dictionary, $value);
         }
-        $new_value = $this->append_array(array(),$keys,$value);
-        $dictionary = array_merge($dictionary, $new_value) ;
+        $new_value = $this->append_array(array(), $keys, $value);
+        $dictionary = array_merge($dictionary, $new_value);
     }
 
-    private function append_array($current_array, $value_array, $value){
+    private function append_array($current_array, $value_array, $value)
+    {
         $current_key = array_shift($value_array);
-        if(count($value_array) == 0)
+        if (count($value_array) == 0) {
             $current_array = array($current_key => $value);
-        else
-            $current_array[$current_key] = $this->append_array(array(),$value_array, $value);
+        } else {
+            $current_array[ $current_key ] = $this->append_array(array(), $value_array, $value);
+        }
+
         return $current_array;
     }
 
@@ -72,11 +109,13 @@ trait utils{
      * $attr = [instance, attrs]
      *
      */
-    public function get_attr($instance, $attrs){
+    public function get_attr($instance, $attrs)
+    {
 
-        foreach($attrs as $attr){
-            $instance = $instance[$attr];
+        foreach ($attrs as $attr) {
+            $instance = $instance[ $attr ];
         }
+
         return $instance;
     }
 
@@ -110,8 +149,40 @@ trait utils{
      * @param $dictionary
      * @param $prefix
      */
-    public function parse_html_list($dictionary, $prefix){
-        
 
+    public function parse_html_list($dictionary, $prefix = '')
+    {
+        $patter_string = sprintf('/^%s\[([0-9]+)\](.*)$/', addslashes($prefix));
+        $ret = array();
+        foreach ($dictionary as $key => $item) {
+            $match = array();
+            if (preg_match($patter_string, $key, $match)) {
+                /**
+                 * for $key = [0]foo
+                 * then
+                 * $match = array(3){
+                 *  [0]=>
+                 *  string(7) "-[0]foo"
+                 *  [1]=>
+                 *  string(1) "0"
+                 *  [2]=>
+                 *  string(3) "foo"
+                 * }
+                 **/
+
+                if (!isset($match[ 2 ]) || trim($match[ 2 ]) === '') {
+                    $ret[ $match[ 1 ] ] = $item;
+                } else {
+                    if (is_array($ret[ $match[ 1 ] ])) {
+                        $ret[ $match[ 1 ] ][ $match[ 2 ] ] = $item;
+                    } else {
+                        $ret[ $match[ 1 ] ] = array($match[ 2 ] => $item);
+                    }
+                }
+            }
+
+        }
+
+        return $ret;
     }
 }
