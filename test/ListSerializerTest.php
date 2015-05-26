@@ -16,6 +16,7 @@ class ListSerializersTest extends PHPUnit_Framework_TestCase
 
     function setUp()
     {
+
     }
 
     function test_validate()
@@ -36,3 +37,4 @@ class ListSerializersTest extends PHPUnit_Framework_TestCase
         $this->assertEquals( $output, $serializer->validated_data );
     }
 }
+
