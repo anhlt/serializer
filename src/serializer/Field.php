@@ -202,7 +202,7 @@ class CharField extends Field
 {
     public $message = [
         'required' => 'This field is required.',
-        'blank' => 'This field may not be black'
+        'blank' => 'This field may not be blank'
     ];
     protected $allow_blank = false;
 

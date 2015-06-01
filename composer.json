@@ -10,7 +10,8 @@
     }
   ],
   "require": {
-    "phpunit/phpunit": "4.8.x-dev"
+    "phpunit/phpunit": "4.8.x-dev",
+    "nesbot/carbon": "~1.14"
   },
   "autoload": {
     "psr-4": {
