@@ -1,6 +1,7 @@
 <?php
 namespace serializer;
-
+use Carbon\Carbon;
+use InvalidArgumentException;
 
 class SkipField extends \Exception
 {
@@ -97,7 +98,7 @@ class Field
 
     public function get_initial()
     {
-        # Return a value to use when the field is being returned as a primative
+        # 
         # value, without any object instance.
 
         return $this->initial;
@@ -249,4 +250,31 @@ class ChoiceField extends Field
 
 }
 
+class DateTimeField extends Field
+{
+    public $message = [
+        'date' => 'Expected a datetime but got date',
+        'invalid' => 'Datetime has wrong format. Use one of these formats instead'
+    ];
+
+    public $format;
+    public $timezone;
+
+    public function __construct($arg = array())
+    {
+        $this->format = Setting::DATETIME_FORMAT;
+        $this->timezone = Setting::TIMEZONE;
+    }
+
+    public function to_native($data)
+    {
+        try {
+            $native = Carbon::createFromFormat($this->format, $data, $this->timezone);
+
+            return $native;
+        } catch (InvalidArgumentException $e) {
+            $this->fail('invalid');
+        }
+    }
+}
 ?>
