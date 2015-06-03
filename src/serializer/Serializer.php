@@ -150,13 +150,13 @@ class Serializer extends BaseSerializer
         $data = [];
         /** @var \serializer\Field $field */
         foreach ($this->fields as $field_name => $field) {
-            $data[$field_name] = $field->get_initial();
+            $data[ $field_name ] = $field->get_initial();
         }
     }
 
     public function get_value($obj)
     {
-        return $obj[$this->field_name];
+        return $obj[ $this->field_name ];
     }
 
     /**
@@ -170,14 +170,8 @@ class Serializer extends BaseSerializer
         $errors = array();
         /** @var \serializer\Field $field */
         foreach ($this->fields as $field) {
-            if ($field->read_only)
+            if ($field->read_only) {
                 continue;
-
-            if (method_exists($this, $field->field_name)) {
-                $method_name = $field->field_name;
-                $primitive_value = $this->$method_name($data);
-            } else {
-                $primitive_value = $field->get_value($data);
             }
 
             try {
@@ -185,7 +179,7 @@ class Serializer extends BaseSerializer
             } catch (SkipField $e) {
 
             } catch (\Exception $e) {
-                $errors[$field->field_name] = $e->getMessage();
+                $errors[ $field->field_name ] = $e->getMessage();
             }
             $this->set_value($ret, $field->source_attrs, $validated_value);
         }
@@ -210,11 +204,20 @@ class Serializer extends BaseSerializer
         $ret = array();
         /** @var \serializer\Field $field */
         foreach ($this->fields as $field) {
-            if ($field->read_only)
+            if ($field->read_only) {
                 continue;
-            $native_value = $field->get_attribute($instance);
-            $ret[$field->field_name] = $field->to_primative($native_value);
+            }
+
+            if (method_exists($this, $field->field_name)) {
+                $method_name = $field->field_name;
+                $native_value = $this->$method_name($instance);
+            } else {
+                $native_value = $field->get_attribute($instance);
+            }
+
+            $ret[ $field->field_name ] = $field->to_primative($native_value);
         }
+
 
         return $ret;
     }
@@ -239,6 +242,7 @@ class Serializer extends BaseSerializer
         foreach ($validated_data as $key => $value) {
             $instance->$key = $value;
         }
+
         return $instance;
     }
 
@@ -253,6 +257,7 @@ class Serializer extends BaseSerializer
         foreach ($validated_data as $key => $value) {
             $obj->$key = $value;
         }
+
         return $obj;
     }
 }
