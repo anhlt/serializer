@@ -154,11 +154,6 @@ class Serializer extends BaseSerializer
         }
     }
 
-    public function get_value($obj)
-    {
-        return $obj[ $this->field_name ];
-    }
-
     /**
      * @param $data
      * @return array
@@ -173,7 +168,7 @@ class Serializer extends BaseSerializer
             if ($field->read_only) {
                 continue;
             }
-
+            $primitive_value = $this->get_value($data);
             try {
                 $validated_value = $field->validate($primitive_value);
             } catch (SkipField $e) {
@@ -195,6 +190,11 @@ class Serializer extends BaseSerializer
         return $ret;
     }
 
+    public function get_value($obj)
+    {
+        return $obj[ $this->field_name ];
+    }
+
     /**
      * @param $instance
      * @return array
@@ -207,7 +207,6 @@ class Serializer extends BaseSerializer
             if ($field->read_only) {
                 continue;
             }
-
             if (method_exists($this, $field->field_name)) {
                 $method_name = $field->field_name;
                 $native_value = $this->$method_name($instance);
