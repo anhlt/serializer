@@ -25,16 +25,6 @@ abstract class BaseSerializer extends Field
         $this->init_data = $data;
     }
 
-    public function to_native($data)
-    {
-        throw new \Exception('NotImplementedError');
-    }
-
-    public function to_primative($instance)
-    {
-        throw new \Exception('NotImplementedError');
-    }
-
     public function save()
     {
         throw new \Exception('NotImplementedError');
@@ -59,6 +49,11 @@ abstract class BaseSerializer extends Field
         return true;
     }
 
+    public function to_native($data)
+    {
+        throw new \Exception('NotImplementedError');
+    }
+
     /**
      * @param $name
      * @return array|null|void
@@ -74,7 +69,7 @@ abstract class BaseSerializer extends Field
                     # generate data from
                     $this->_data = [];
                     foreach ($this->fields as $field_name => $field) {
-                        $this->_data[$field_name] = $field;
+                        $this->_data[ $field_name ] = $field;
                     }
                 } else {
                     $this->_data = $this->get_initial();
@@ -104,6 +99,11 @@ abstract class BaseSerializer extends Field
 
 
         throw new \Exception('Access to undefined properties');
+    }
+
+    public function to_primative($instance)
+    {
+        throw new \Exception('NotImplementedError');
     }
 
 }
@@ -172,7 +172,13 @@ class Serializer extends BaseSerializer
         foreach ($this->fields as $field) {
             if ($field->read_only)
                 continue;
-            $primitive_value = $field->get_value($data);
+
+            if (method_exists($this, $field->field_name)) {
+                $method_name = $field->field_name;
+                $primitive_value = $this->$method_name($data);
+            } else {
+                $primitive_value = $field->get_value($data);
+            }
 
             try {
                 $validated_value = $field->validate($primitive_value);
@@ -213,6 +219,16 @@ class Serializer extends BaseSerializer
         return $ret;
     }
 
+    public function save()
+    {
+        if (!is_null($this->instance)) {
+            $this->update($this->instance, $this->validated_data);
+        }
+        $this->instance = $this->create($this->validated_data);
+
+        return $this->instance;
+    }
+
     /**
      * @param \serializer\BasicObject $instance
      * @param array $validated_data
@@ -238,15 +254,6 @@ class Serializer extends BaseSerializer
             $obj->$key = $value;
         }
         return $obj;
-    }
-
-    public function save()
-    {
-        if (!is_null($this->instance)) {
-            $this->update($this->instance, $this->validated_data);
-        }
-        $this->instance = $this->create($this->validated_data);
-        return $this->instance;
     }
 }
 
