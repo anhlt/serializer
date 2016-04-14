@@ -31,6 +31,14 @@ class Field
     public $message = [
         'required' => 'This field is required.'
     ];
+    protected $read_only;
+    protected $write_only;
+    protected $require;
+    protected $default;
+    protected $initial;
+    protected $source;
+    protected $label;
+    protected $style;
 
     public function __construct($arg = array())
     {
@@ -62,7 +70,7 @@ class Field
         $this->label = $defaults['label'];
         if (is_null($defaults['style'])) {
             $this->style = array();
-        } else {
+        }else {
             $this->style = $defaults['style'];
         }
     }
@@ -91,7 +99,7 @@ class Field
         # TODO: Findout about source
         if ($this->source == '*') {
             $this->source_attrs = array();
-        } else {
+        }else {
             $this->source_attrs = explode('.', $this->source);
         }
     }
@@ -108,10 +116,11 @@ class Field
     {
         # Given the *incoming* primative data, return the value for this field
         # that should be validated and transformed to a native value.
-        if (array_key_exists($this->field_name, $obj))
+        if (array_key_exists($this->field_name, $obj)) {
             return $obj[$this->field_name];
-        else
+        }else {
             return null;
+        }
     }
 
     public function get_attribute($instance)
@@ -142,7 +151,7 @@ class Field
     public function fail($key)
     {
         if (array_key_exists($key, $this->message)) {
-            throw new ValidationError($this->message[ $key ]);
+            throw new ValidationError($this->message[$key]);
         }
     }
 
@@ -191,9 +200,9 @@ class BooleanField extends Field
     {
         if (in_array($data, $this->FALSE_VALUES, true)) {
             return false;
-        } elseif (in_array($data, $this->TRUE_VALUES, true)) {
+        }elseif (in_array($data, $this->TRUE_VALUES, true)) {
             return true;
-        } else {
+        }else {
             $this->fail('invalid_value');
         }
     }
@@ -212,6 +221,14 @@ class CharField extends Field
         $this->allow_blank = $arg['allow_blank'];
         parent::__construct($arg);
     }
+
+    public function to_native($data)
+    {
+        if ($data == '' && !$this->allow_blank) {
+            $this->fail('blank');
+        }
+        return (string)$data;
+    }
 }
 
 
@@ -225,9 +242,32 @@ class IntegerField extends Field
     public function to_native($data)
     {
         if (is_numeric($data)) {
-            return (int)$data;
+            $tmp = $data + 0;
+            if (is_int($tmp)) {
+                return $data;
+            }
         }
         $this->fail('invalid_integer');
+    }
+}
+
+
+class FloatField extends Field
+{
+    public $message = [
+        'required' => 'This field is required.',
+        'invalid_float' => 'A valid float is required.'
+    ];
+
+    public function to_native($data)
+    {
+        if (is_numeric($data)) {
+            $tmp = $data + 0;
+            if (is_float($tmp)) {
+                return $data;
+            }
+        }
+        $this->fail('invalid_float');
     }
 }
 
@@ -240,41 +280,51 @@ class ChoiceField extends Field
 
     public function __construct($arg)
     {
-        if(array_key_exists('choices', $arg)){
+        if (array_key_exists('choices', $arg)) {
             $choices = $arg['choices'];
             unset($arg['choices']);
         }
         assert($choices, '`choices` arguments is required and may not be empty');
-        
+        parent::__construct($arg);
     }
-
 }
 
 class DateTimeField extends Field
 {
     public $message = [
         'date' => 'Expected a datetime but got date',
-        'invalid' => 'Datetime has wrong format. Use one of these formats instead'
+        'invalid' => 'Datetime has wrong format. Use one of these formats instead',
+        'blank' => 'This field may not be blank',
     ];
+    protected $allow_blank = false;
+    protected $format;
+    protected $timezone;
 
-    public $format;
-    public $timezone;
 
-    public function __construct($arg = array())
+    public function __construct($arg = array('allow_blank' => false))
     {
         $this->format = Setting::DATETIME_FORMAT;
         $this->timezone = Setting::TIMEZONE;
+        $this->allow_blank = $arg['allow_blank'];
+        parent::__construct($arg);
     }
 
     public function to_native($data)
     {
-        try {
+        if (!$data) {
+            if (!$this->allow_blank) {
+                $this->fail('blank');
+            }else {
+                return null;
+            }
+        }
+        try{
             $native = Carbon::createFromFormat($this->format, $data, $this->timezone);
-
             return $native;
-        } catch (InvalidArgumentException $e) {
+        }catch (InvalidArgumentException $e){
             $this->fail('invalid');
         }
     }
 }
+
 ?>

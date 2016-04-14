@@ -15,8 +15,8 @@ class TestSerializer extends Serializer
 {
     public function define_fields()
     {
-        $this->fields[ 'name' ] = new CharField(array('allow_blank' => false));
-        $this->fields[ 'age' ] = new IntegerField(array('require' => true));
+        $this->fields['name'] = new CharField(array('allow_blank' => false));
+        $this->fields['age'] = new IntegerField(array('require' => true));
     }
 }
 
@@ -25,9 +25,9 @@ class CreateFieldSerializer extends Serializer
 {
     public function define_fields()
     {
-        $this->fields[ 'name' ] = new CharField(array('allow_blank' => false));
-        $this->fields[ 'age' ] = new IntegerField(array('require' => true));
-        $this->fields[ 'on_fly' ] = new IntegerField(array('require' => true));
+        $this->fields['name'] = new CharField(array('allow_blank' => false));
+        $this->fields['age'] = new IntegerField(array('require' => true));
+        $this->fields['on_fly'] = new IntegerField(array('require' => true));
     }
 
     public function on_fly($instance)

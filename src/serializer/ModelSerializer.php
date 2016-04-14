@@ -23,8 +23,6 @@ class ModelSerializer extends Serializer
      */
     private function init_model()
     {
-        $StoreFactory = new aafwEntityStoreFactory ();
-        $this->modelEntity = $StoreFactory->create($this::$model);
     }
 
 
@@ -34,24 +32,14 @@ class ModelSerializer extends Serializer
      */
     public function create($validated_data)
     {
-        $instance = $this->modelEntity->createEmptyObject();
-        foreach ($validated_data as $key => $value) {
-            $instance->$key = $value;
-        }
-        $this->modelEntity->save($instance);
 
     }
 
     /**
-     * @param aafwEntityStoreBase $instance
      * @param array $validated_data
      * @return mixed|void
      */
     public function update($instance, $validated_data)
     {
-        foreach ($validated_data as $key => $value) {
-            $instance->$key = $value;
-        }
-        $this->modelEntity->save($instance);
     }
 }

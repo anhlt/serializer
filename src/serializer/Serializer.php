@@ -120,7 +120,7 @@ class Serializer extends BaseSerializer
      * @param null $instance
      * @param null $data
      * @param array $arg
-     * @throws \Exception
+     * @throws \Exception/Users/letuananh/workspace/serializer
      */
     public function __construct($instance = null, $data = null, $arg = array())
     {
@@ -168,7 +168,7 @@ class Serializer extends BaseSerializer
             if ($field->read_only) {
                 continue;
             }
-            $primitive_value = $this->get_value($data);
+            $primitive_value = $field->get_value($data);
             try {
                 $validated_value = $field->validate($primitive_value);
             } catch (SkipField $e) {
@@ -252,7 +252,7 @@ class Serializer extends BaseSerializer
     public function create($validated_data)
     {
         $obj = new BasicObject();
-        /** @var Array $validated_data */
+        /** @var array $validated_data */
         foreach ($validated_data as $key => $value) {
             $obj->$key = $value;
         }
