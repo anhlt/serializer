@@ -9,6 +9,8 @@
 use serializer\CharField;
 use serializer\IntegerField;
 use serializer\Serializer;
+use serializer\ListSerializer;
+use serializer\BooleanField;
 
 
 class TestSerializer extends Serializer
@@ -36,6 +38,33 @@ class CreateFieldSerializer extends Serializer
     }
 }
 
+
+class ChildSerializer2 extends Serializer
+{
+    public function define_fields()
+    {
+        $this->fields['integer'] = new IntegerField(array('require' => true));
+        $this->fields['boolean'] = new BooleanField(array('require' => true));
+    }
+}
+
+class NestedListSerializer2 extends ListSerializer
+{
+    public function define_fields()
+    {
+        $this->child = new ChildSerializer2();
+    }
+}
+
+class DeepNestedSerializer extends Serializer
+{
+    public function define_fields()
+    {
+        $this->fields['name'] = new CharField(array('allow_blank' => false));
+        $this->fields['age'] = new IntegerField(array('require' => true));
+        $this->fields['list'] = new NestedListSerializer2(array('require' => true));
+    }
+}
 
 class SerializersTest extends PHPUnit_Framework_TestCase
 {
@@ -92,4 +121,40 @@ class SerializersTest extends PHPUnit_Framework_TestCase
         $this->assertTrue($serializer->is_valid());
     }
 
+}
+
+
+class TestDeepNestedSerializer extends PHPUnit_Framework_TestCase
+{
+    public function setUp()
+    {
+        $input = [
+            'name' => 'anhlt',
+            'age' => 5,
+            'list' =>
+                [
+                    ['integer' => '123', 'boolean' => 'true'],
+                    ['integer' => '456', 'boolean' => 'false'],
+                ]
+        ];
+        $this->serializer = new DeepNestedSerializer(null, $input);
+
+    }
+
+    function test_validate()
+    {
+        $output = [
+            'name' => 'anhlt',
+            'age' => 5,
+            'list' =>
+                [
+                    ['integer' => 123, 'boolean' => true],
+                    ['integer' => 456, 'boolean' => false],
+                ]
+        ];
+
+
+        $this->assertTrue($this->serializer->is_valid());
+        $this->assertEquals($output, $this->serializer->validated_data);
+    }
 }

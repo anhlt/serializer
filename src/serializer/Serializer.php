@@ -171,12 +171,12 @@ class Serializer extends BaseSerializer
             $primitive_value = $field->get_value($data);
             try {
                 $validated_value = $field->validate($primitive_value);
+                $this->set_value($ret, $field->source_attrs, $validated_value);
             } catch (SkipField $e) {
-
+                $errors[ $field->field_name ] = $e->getMessage();
             } catch (\Exception $e) {
                 $errors[ $field->field_name ] = $e->getMessage();
             }
-            $this->set_value($ret, $field->source_attrs, $validated_value);
         }
 
         if ($errors) {
