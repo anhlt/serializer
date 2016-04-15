@@ -300,7 +300,6 @@ class DateTimeField extends Field
     protected $format;
     protected $timezone;
 
-
     public function __construct($arg = array('allow_blank' => false))
     {
         $this->format = Setting::DATETIME_FORMAT;

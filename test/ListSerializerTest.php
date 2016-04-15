@@ -47,7 +47,6 @@ class ChildSerializer extends Serializer
         $this->fields[ 'integer' ] = new IntegerField(array('require' => true));
         $this->fields[ 'boolean' ] = new BooleanField(array('require' => true));
     }
-
 }
 
 class NestedListSerializer extends ListSerializer
